@@ -4,6 +4,7 @@ import json
 from flask import Flask, request, jsonify
 
 # Create a Flask app instance.
+# The `app` object must be named this way for the default Cloud Run entrypoint to find it.
 app = Flask(__name__)
 
 # This is the entry point for your Cloud Run service.
@@ -16,7 +17,7 @@ def handle_dialogflow_webhook():
     req = request.get_json(silent=True)
     
     # Log the full request for debugging.
-    # print(json.dumps(req, indent=2))
+    print(json.dumps(req, indent=2))
     
     # Extract the location parameter from the session.
     try:
@@ -54,7 +55,7 @@ def handle_dialogflow_webhook():
         return jsonify({'fulfillmentResponse': {'messages': [{'text': {'text': [f'An error occurred while fetching the weather: {e}.']}}]}})
 
     # Extract the relevant weather information from the API response.
-    if data['cod'] == 200:
+    if data.get('cod') == 200:
         weather = data['weather'][0]['description']
         temperature = data['main']['temp']
         
@@ -76,3 +77,9 @@ def handle_dialogflow_webhook():
             ]
         }
     })
+
+# This block allows you to run the app locally for testing.
+if __name__ == "__main__":
+    # Use 0.0.0.0 to listen on all public IPs, which is standard for containers.
+    # The port will be provided by Cloud Run, so this is for local testing only.
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8080))
