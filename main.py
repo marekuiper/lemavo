@@ -4,7 +4,6 @@ import json
 from flask import Flask, request, jsonify
 
 # Create a Flask app instance.
-# The `app` object must be named this way for the default Cloud Run entrypoint to find it.
 app = Flask(__name__)
 
 # This is the entry point for your Cloud Run service.
@@ -20,8 +19,9 @@ def handle_dialogflow_webhook():
     print(json.dumps(req, indent=2))
     
     # Extract the location parameter from the session.
+    # The Dialogflow log shows the parameter is named "geo-city".
     try:
-        location = req['sessionInfo']['parameters']['location']
+        location = req['sessionInfo']['parameters']['geo-city']
     except (KeyError, IndexError):
         # Fallback to a different way of getting the parameter if the first one fails.
         try:
@@ -80,6 +80,4 @@ def handle_dialogflow_webhook():
 
 # This block allows you to run the app locally for testing.
 if __name__ == "__main__":
-    # Use 0.0.0.0 to listen on all public IPs, which is standard for containers.
-    # The port will be provided by Cloud Run, so this is for local testing only.
     app.run(host='0.0.0.0', port=os.environ.get('PORT', 8080))
